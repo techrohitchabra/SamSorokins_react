@@ -10,6 +10,7 @@ import EditFilesBySubmissionId from "../views/pages/EditFilesBySubmissionId";
 import RentManager from "../views/pages/RentManager";
 import KeyManagement from "../views/pages/KeyManagement";
 import DuplicateSubmissions from "../views/pages/DuplicateSubmissions";
+import TestSubmissions from "../views/pages/TestSubmissions";
 
 /**
  * Routes component that conditionally renders application routes based on user authentication status.
@@ -62,6 +63,10 @@ const MainRoutes = () => ({
     {
       path: "/key-management",
       element: <KeyManagement />,
+    },
+    {
+      path: "/test-submissions",
+      element: <TestSubmissions />,
     },
     {
       path: "*",
