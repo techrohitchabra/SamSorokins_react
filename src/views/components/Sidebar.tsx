@@ -3,6 +3,7 @@ import PeopleIcon from "@mui/icons-material/People";
 import ApartmentIcon from "@mui/icons-material/Apartment";
 import ListAltIcon from "@mui/icons-material/ListAlt";
 import CopyAllIcon from "@mui/icons-material/CopyAll";
+import AssignmentIcon from "@mui/icons-material/Assignment";
 import {
   Box,
   Divider,
@@ -131,6 +132,11 @@ const Sidebar = ({ mobileOpen, onMobileToggle, desktopOpen }: Props) => {
               text: "Logs",
               icon: <ListAltIcon />,
               path: "/logs",
+            },
+            {
+              text: "Test Submissions",
+              icon: <AssignmentIcon />,
+              path: "/test-submissions",
             },
           ]
         : []),
