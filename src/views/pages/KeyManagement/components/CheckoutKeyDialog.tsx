@@ -13,7 +13,7 @@ import MuiTextField from "../../../components/inputs/MuiTextField";
 import MultilineTextField from "../../../components/inputs/MultilineTextField";
 import Select from "../../../components/inputs/Select";
 import BasicModal from "../../../components/modal";
-import PhoneNumberHelper from "../../../components/inputs/PhoneNumber";
+// import PhoneNumberHelper from "../../../components/inputs/PhoneNumber";
 import useAuth from "../../../../hooks/useAuth";
 
 const STATUS_OPTIONS = [
@@ -174,7 +174,26 @@ const CheckoutKeyDialog: React.FC<CheckoutKeyDialogProps> = ({
         }),
         property: Yup.string().required("Property is required"),
         unit: Yup.string(),
-        phoneNumber: Yup.string().required("Phone Number is required"),
+        phoneNumber: Yup.string()
+          .transform((val) => (val ? val.trim() : val))
+          .required("Phone Number is required")
+          .test(
+            "valid-phone-format",
+            "Phone Number contains invalid characters",
+            (val) => {
+              if (!val) return false;
+              return /^[0-9+\-()\s.]+$/.test(val);
+            }
+          )
+          .test(
+            "valid-phone-digit-count",
+            "Phone Number must contain between 8 and 14 digits",
+            (val) => {
+              if (!val) return false;
+              const digits = val.replace(/\D/g, "");
+              return digits.length >= 8 && digits.length <= 14;
+            }
+          ),
         email: Yup.string()
           .email("Must be a valid email")
           .required("Email is required"),
@@ -209,8 +228,48 @@ const CheckoutKeyDialog: React.FC<CheckoutKeyDialogProps> = ({
         pickerPhoneNumber: Yup.string().when(["userType", "areKeysForYou"], {
           is: (uType: string, keysForYou: string) =>
             uType === "Non-Vendor" && keysForYou === "No",
-          then: (schema) => schema.required("Picker Phone Number is required"),
-          otherwise: (schema) => schema.optional(),
+          then: (schema) =>
+            schema
+              .transform((val) => (val ? val.trim() : val))
+              .required("Picker Phone Number is required")
+              .test(
+                "valid-picker-phone-format",
+                "Picker Phone Number contains invalid characters",
+                (val) => {
+                  if (!val) return false;
+                  return /^[0-9+\-()\s.]+$/.test(val);
+                }
+              )
+              .test(
+                "valid-picker-phone-digit-count",
+                "Picker Phone Number must contain between 8 and 14 digits",
+                (val) => {
+                  if (!val) return false;
+                  const digits = val.replace(/\D/g, "");
+                  return digits.length >= 8 && digits.length <= 14;
+                }
+              ),
+          otherwise: (schema) =>
+            schema
+              .optional()
+              .transform((val) => (val ? val.trim() : val))
+              .test(
+                "valid-picker-phone-format",
+                "Picker Phone Number contains invalid characters",
+                (val) => {
+                  if (!val || val.trim() === "") return true;
+                  return /^[0-9+\-()\s.]+$/.test(val);
+                }
+              )
+              .test(
+                "valid-picker-phone-digit-count",
+                "Picker Phone Number must contain between 8 and 14 digits",
+                (val) => {
+                  if (!val || val.trim() === "") return true;
+                  const digits = val.replace(/\D/g, "");
+                  return digits.length >= 8 && digits.length <= 14;
+                }
+              ),
         }),
         pickerEmail: Yup.string()
           .email("Must be a valid email")
@@ -1021,13 +1080,13 @@ const CheckoutKeyDialog: React.FC<CheckoutKeyDialogProps> = ({
 
           {/* Phone Number */}
           <Grid size={{ xs: 12, sm: 6 }}>
-            <PhoneNumberHelper
+            <MuiTextField
               name="phoneNumber"
               label="Phone Number"
+              placeholder="e.g. (211) 111-11100"
               disabled={isSubmitting}
               required
-              onlyCountries={["us"]}
-              disableDropdown={true}
+              inputProps={{ maxLength: 25 }}
             />
           </Grid>
 
@@ -1198,13 +1257,13 @@ const CheckoutKeyDialog: React.FC<CheckoutKeyDialogProps> = ({
                         />
                       </Grid>
                       <Grid size={{ xs: 12, sm: 4 }}>
-                        <PhoneNumberHelper
+                        <MuiTextField
                           name="pickerPhoneNumber"
                           label="Picker Phone Number"
+                          placeholder="e.g. (211) 111-11100"
                           disabled={isSubmitting}
                           required={isNonVendor}
-                          onlyCountries={["us"]}
-                          disableDropdown={true}
+                          inputProps={{ maxLength: 25 }}
                         />
                       </Grid>
                       <Grid size={{ xs: 12, sm: 4 }}>
