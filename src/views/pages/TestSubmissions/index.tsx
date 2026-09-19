@@ -65,7 +65,9 @@ const TestSubmissions: React.FC = () => {
   const [syncing, setSyncing] = useState<boolean>(false);
 
   // Track item targeted for deletion
-  const [submissionToDelete, setSubmissionToDelete] = useState<string | null>(null);
+  const [submissionToDelete, setSubmissionToDelete] = useState<string | null>(
+    null
+  );
 
   const fetchSubmissions = async () => {
     setLoading(true);
