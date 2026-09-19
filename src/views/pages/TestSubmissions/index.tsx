@@ -3,6 +3,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import FolderIcon from "@mui/icons-material/Folder";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import SearchIcon from "@mui/icons-material/Search";
+import DeleteIcon from "@mui/icons-material/Delete";
 import {
   Accordion,
   AccordionDetails,
@@ -11,11 +12,6 @@ import {
   Button,
   Chip,
   CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Divider,
   IconButton,
   InputAdornment,
   Paper,
@@ -31,10 +27,13 @@ import {
   Typography,
 } from "@mui/material";
 import dayjs from "dayjs";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useModal } from "mui-modal-provider";
 import useAuth from "../../../hooks/useAuth";
 import MainCard from "../../components/MainCard";
 import { useSnackbarHelper } from "../../components/snackbar";
+import DeleteTestSubmissionModal from "./DeleteTestSubmissionModal";
+import FetchJotformModal from "./FetchJotformModal";
 
 interface TestSubmissionItem {
   _id: string;
@@ -54,15 +53,19 @@ interface TestSubmissionItem {
 const TestSubmissions: React.FC = () => {
   const { request } = useAuth();
   const showSnackbar = useSnackbarHelper();
+  const { showModal } = useModal();
 
   const [submissions, setSubmissions] = useState<TestSubmissionItem[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [search, setSearch] = useState<string>("");
 
-  // Modal State
+  // Modal State for Syncing
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [formIdInput, setFormIdInput] = useState<string>("");
   const [syncing, setSyncing] = useState<boolean>(false);
+
+  // Track item targeted for deletion
+  const [submissionToDelete, setSubmissionToDelete] = useState<string | null>(null);
 
   const fetchSubmissions = async () => {
     setLoading(true);
@@ -129,6 +132,50 @@ const TestSubmissions: React.FC = () => {
       setSyncing(false);
     }
   };
+
+  // Delete Action via mui-modal-provider showModal
+  const handleDeleteSubmission = useCallback(
+    (row: TestSubmissionItem) => {
+      const id = row._id || row.submissionId;
+      setSubmissionToDelete(id);
+
+      const modal: any = showModal(DeleteTestSubmissionModal, {
+        onClose: () => {
+          modal.hide();
+          setSubmissionToDelete(null);
+        },
+        submissionId: row.submissionId,
+        onConfirm: async () => {
+          try {
+            const res = await request.delete(`/testSubmissions/${id}`);
+            if (res.data?.success) {
+              showSnackbar(
+                res.data.message ||
+                  "Test submission permanently deleted successfully!",
+                "success"
+              );
+              setSubmissions((prev) =>
+                prev.filter(
+                  (item) => item._id !== id && item.submissionId !== id
+                )
+              );
+              modal.hide();
+            }
+          } catch (error: any) {
+            console.error("Failed to delete test submission:", error);
+            showSnackbar(
+              error?.response?.data?.message ||
+                "Failed to delete test submission",
+              "error"
+            );
+          } finally {
+            setSubmissionToDelete(null);
+          }
+        },
+      });
+    },
+    [showModal, request, showSnackbar]
+  );
 
   // Filter & Group Submissions by formId
   const filteredSubmissions = useMemo(() => {
@@ -317,6 +364,12 @@ const TestSubmissions: React.FC = () => {
                                 <TableCell sx={{ fontWeight: 700 }}>
                                   Created At
                                 </TableCell>
+                                <TableCell
+                                  align="center"
+                                  sx={{ fontWeight: 700 }}
+                                >
+                                  Action
+                                </TableCell>
                               </TableRow>
                             </TableHead>
                             <TableBody>
@@ -356,6 +409,23 @@ const TestSubmissions: React.FC = () => {
                                         )
                                       : "-"}
                                   </TableCell>
+                                  <TableCell align="center">
+                                    <Tooltip title="Delete Permanently">
+                                      <IconButton
+                                        size="small"
+                                        color="error"
+                                        disabled={
+                                          submissionToDelete ===
+                                          (row._id || row.submissionId)
+                                        }
+                                        onClick={() =>
+                                          handleDeleteSubmission(row)
+                                        }
+                                      >
+                                        <DeleteIcon fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+                                  </TableCell>
                                 </TableRow>
                               ))}
                             </TableBody>
@@ -372,70 +442,14 @@ const TestSubmissions: React.FC = () => {
       />
 
       {/* Fetch Jotform Submissions Modal */}
-      <Dialog
+      <FetchJotformModal
         open={modalOpen}
         onClose={handleCloseModal}
-        maxWidth="xs"
-        fullWidth
-        PaperProps={{ sx: { borderRadius: 2.5, p: 1 } }}
-      >
-        <form onSubmit={handleSyncSubmit}>
-          <DialogTitle sx={{ fontWeight: 700, pb: 1, color: "#1c3260" }}>
-            Fetch Jotform Submissions
-          </DialogTitle>
-          <Divider />
-          <DialogContent sx={{ pt: 2.5 }}>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Enter the Jotform <strong>Form ID</strong> below to import all
-              existing submissions for that form and store them in the{" "}
-              <code>testsubmissions</code> table.
-            </Typography>
-            <TextField
-              autoFocus
-              label="Jotform Form ID"
-              placeholder="e.g. 24123456789012"
-              fullWidth
-              required
-              value={formIdInput}
-              onChange={(e) => setFormIdInput(e.target.value)}
-              disabled={syncing}
-              variant="outlined"
-              size="medium"
-            />
-          </DialogContent>
-          <DialogActions sx={{ px: 3, pb: 2 }}>
-            <Button
-              onClick={handleCloseModal}
-              disabled={syncing}
-              color="inherit"
-              sx={{ textTransform: "none" }}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={syncing}
-              startIcon={
-                syncing ? (
-                  <CircularProgress size={18} color="inherit" />
-                ) : (
-                  <CloudDownloadIcon />
-                )
-              }
-              sx={{
-                bgcolor: "#1c3260",
-                "&:hover": { bgcolor: "#152548" },
-                textTransform: "none",
-                fontWeight: 600,
-                px: 3,
-              }}
-            >
-              {syncing ? "Fetching..." : "Submit"}
-            </Button>
-          </DialogActions>
-        </form>
-      </Dialog>
+        onSubmit={handleSyncSubmit}
+        formIdInput={formIdInput}
+        setFormIdInput={setFormIdInput}
+        syncing={syncing}
+      />
     </Box>
   );
 };
