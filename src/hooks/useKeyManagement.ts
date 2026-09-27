@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { GridPaginationModel } from "@mui/x-data-grid";
+import type { GridPaginationModel, GridSortModel } from "@mui/x-data-grid";
 import useAuth from "./useAuth";
 import { useSnackbarHelper } from "../views/components/snackbar";
 
@@ -19,6 +19,7 @@ export interface KeyData {
   keysNeeded?: string;
   status: string;
   lostReason?: string;
+  notes?: string;
   source?: string;
   accessLog: string[];
   rawData: any;
@@ -60,6 +61,7 @@ export type CreateKeyPayload = {
   pickUpDateTime?: string;
   byWhen?: string;
   keysNeeded?: string;
+  rfId?: string;
   status?: string;
   lostReason?: string;
   purpose?: string;
@@ -77,6 +79,7 @@ export type UpdateKeyPayload = {
   rfId?: string;
   status?: string;
   lostReason?: string;
+  notes?: string;
 };
 
 /**
@@ -86,7 +89,8 @@ export type UpdateKeyPayload = {
 export const useKeyManagement = (
   search?: string,
   status?: string,
-  paginationModel?: GridPaginationModel
+  paginationModel?: GridPaginationModel,
+  sortModel?: GridSortModel
 ) => {
   const { request } = useAuth();
   const showSnackbar = useSnackbarHelper();
@@ -99,13 +103,7 @@ export const useKeyManagement = (
     isFetching,
     refetch: refetchKeys,
   } = useQuery({
-    queryKey: [
-      "keys",
-      search,
-      status,
-      paginationModel?.page,
-      paginationModel?.pageSize,
-    ],
+    queryKey: ["keys", search, status, paginationModel, sortModel],
     queryFn: async () => {
       const response = await request.get("/keys", {
         params: {
@@ -113,13 +111,14 @@ export const useKeyManagement = (
           status: status && status !== "All" ? status : undefined,
           page: paginationModel?.page ?? 0,
           pageSize: paginationModel?.pageSize ?? 12,
+          sortField: sortModel?.[0]?.field,
+          sortOrder: sortModel?.[0]?.sort,
         },
       });
       return response.data;
     },
     placeholderData: (previousData) => previousData,
   });
-
   const loadingKeys = isPending || isFetching;
 
   // Rent Manager API helpers

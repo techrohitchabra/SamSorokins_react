@@ -455,6 +455,33 @@ const KeyDetailsDialog: React.FC<KeyDetailsDialogProps> = ({
             </Grid>
           )}
 
+          {/* Notes section */}
+          {keyData.notes && (
+            <Grid size={{ xs: 12 }}>
+              <Paper
+                sx={{
+                  p: 2,
+                  border: "1px solid #cbd5e1",
+                  bgcolor: "#f8fafc",
+                  borderRadius: 2.5,
+                }}
+              >
+                <Typography
+                  variant="subtitle1"
+                  sx={{ fontWeight: 700, color: "#1e293b", mb: 1 }}
+                >
+                  📝 Notes
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{ color: "#334155", whiteSpace: "pre-wrap" }}
+                >
+                  {keyData.notes}
+                </Typography>
+              </Paper>
+            </Grid>
+          )}
+
           {/* Raw JSON Webhook Payload */}
           {/* {keyData.rawData && Object.keys(keyData.rawData).length > 0 && (
             <Grid size={{ xs: 12 }}>

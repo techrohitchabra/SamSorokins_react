@@ -17,7 +17,11 @@ import {
   Typography,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
-import { type GridColDef, type GridPaginationModel } from "@mui/x-data-grid";
+import {
+  type GridColDef,
+  type GridPaginationModel,
+  type GridSortModel,
+} from "@mui/x-data-grid";
 import { useModal } from "mui-modal-provider";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -44,6 +48,13 @@ const KeyManagement = () => {
     page: 0,
     pageSize: 12,
   });
+  const [sortModel, setSortModel] = useState<GridSortModel>([
+    { field: "createdAt", sort: "desc" },
+  ]);
+
+  const handleSortModelChange = (newModel: GridSortModel) => {
+    setSortModel(newModel);
+  };
 
   // Debounce search input to avoid API request on every keystroke
   useEffect(() => {
@@ -68,7 +79,12 @@ const KeyManagement = () => {
     fetchRMUsers,
     fetchRMProperties,
     fetchRMUnits,
-  } = useKeyManagement(debouncedSearchTerm, statusFilter, paginationModel);
+  } = useKeyManagement(
+    debouncedSearchTerm,
+    statusFilter,
+    paginationModel,
+    sortModel
+  );
 
   // 1. Check Out Key Modal Caller
   const handleCheckoutOpen = useCallback(() => {
@@ -108,6 +124,7 @@ const KeyManagement = () => {
             rfId?: string;
             status?: string;
             lostReason?: string;
+            notes?: string;
           }
         ) => {
           const updated = await updateKey(id, payload);
@@ -283,6 +300,7 @@ const KeyManagement = () => {
         minWidth: 160,
         flex: 1.1,
         sortable: true,
+        valueGetter: (_value, row) => row?.status || "",
         renderCell: (params) => {
           const style = getStatusColor(params.value);
           const isLost = params.row.status === "Lost";
@@ -373,6 +391,14 @@ const KeyManagement = () => {
         minWidth: 170,
         flex: 1.2,
         sortable: true,
+        valueGetter: (_value, row) => {
+          const isKeysForOther =
+            (row?.areKeysForYou || "").toLowerCase() === "no";
+          const pickerName = row?.whoWillPickUp;
+          return isKeysForOther && pickerName
+            ? pickerName
+            : row?.vendor || row?.whoHasIt || "";
+        },
         renderCell: (params) => {
           const isKeysForOther =
             (params.row.areKeysForYou || "").toLowerCase() === "no";
@@ -421,6 +447,8 @@ const KeyManagement = () => {
         minWidth: 120,
         flex: 0.9,
         sortable: true,
+        valueGetter: (_value, row) =>
+          row?.requestType || row?.userType || "Vendor",
         renderCell: (params) => {
           const typeVal = params.value || params.row.userType || "Vendor";
           const isNonVendor = typeVal === "Non-Vendor";
@@ -449,6 +477,8 @@ const KeyManagement = () => {
         minWidth: 130,
         flex: 1,
         sortable: true,
+        valueGetter: (_value, row) =>
+          row?.serviceIssue || row?.serviceRequest || "",
         renderCell: (params) => (
           <Typography
             variant="body2"
@@ -462,42 +492,56 @@ const KeyManagement = () => {
       {
         field: "property",
         headerName: "Property",
-        minWidth: 180,
+        minWidth: 150,
         flex: 1,
         sortable: true,
+        valueGetter: (_value, row) => row?.property || row?.communityCode || "",
         renderCell: (params) => {
           const propName =
             params.row.property || params.row.communityCode || "-";
-          const unitName = params.row.unit;
           return (
-            <Box display="flex" alignItems="center" gap={0.5}>
-              <Chip
-                label={propName}
-                size="small"
-                sx={{
-                  fontWeight: 650,
-                  bgcolor: "#f1f5f9",
-                  color: "#334155",
-                  border: "1px solid #cbd5e1",
-                  borderRadius: "12px",
-                }}
-              />
-              {unitName && (
-                <Chip
-                  label={`${unitName}`}
-                  size="small"
-                  sx={{
-                    fontWeight: 700,
-                    fontSize: "0.68rem",
-                    height: 20,
-                    bgcolor: "#e0f2fe",
-                    color: "#0369a1",
-                    border: "1px solid #bae6fd",
-                    borderRadius: "10px",
-                  }}
-                />
-              )}
-            </Box>
+            <Chip
+              label={propName}
+              size="small"
+              sx={{
+                fontWeight: 650,
+                bgcolor: "#f1f5f9",
+                color: "#334155",
+                border: "1px solid #cbd5e1",
+                borderRadius: "12px",
+              }}
+            />
+          );
+        },
+        renderHeader: (params: any) => params?.colDef?.headerName,
+      },
+      {
+        field: "unit",
+        headerName: "Unit",
+        minWidth: 110,
+        flex: 0.8,
+        sortable: true,
+        valueGetter: (_value, row) => row?.unit || "",
+        renderCell: (params) => {
+          const unitName = params.row.unit;
+          return unitName ? (
+            <Chip
+              label={unitName}
+              size="small"
+              sx={{
+                fontWeight: 700,
+                fontSize: "0.72rem",
+                height: 22,
+                bgcolor: "#e0f2fe",
+                color: "#0369a1",
+                border: "1px solid #bae6fd",
+                borderRadius: "10px",
+              }}
+            />
+          ) : (
+            <Typography variant="body2" sx={{ color: "#94a3b8" }}>
+              -
+            </Typography>
           );
         },
         renderHeader: (params: any) => params?.colDef?.headerName,
@@ -508,6 +552,7 @@ const KeyManagement = () => {
         minWidth: 120,
         flex: 1,
         sortable: true,
+        valueGetter: (_value, row) => row?.rfId || row?.rfid || row?.frId || "",
         renderCell: (params) => {
           const rfidVal =
             params.row.rfId || params.row.rfid || params.row.frId || "-";
@@ -528,6 +573,7 @@ const KeyManagement = () => {
         minWidth: 150,
         flex: 1.2,
         sortable: true,
+        valueGetter: (_value, row) => row?.keysNeeded || "",
         renderCell: (params) => (
           <Tooltip title={params.row.keysNeeded || ""} arrow placement="top">
             <Typography
@@ -553,6 +599,7 @@ const KeyManagement = () => {
         minWidth: 160,
         flex: 1.2,
         sortable: true,
+        valueGetter: (_value, row) => row?.pickUpDateTime || "",
         renderCell: (params) => (
           <Typography
             variant="body2"
@@ -569,6 +616,7 @@ const KeyManagement = () => {
         minWidth: 110,
         flex: 0.9,
         sortable: true,
+        valueGetter: (_value, row) => row?.byWhen || "",
         renderCell: (params) => (
           <Typography variant="body2" sx={{ color: "#475569" }}>
             {params.row.byWhen || "-"}
@@ -582,6 +630,8 @@ const KeyManagement = () => {
         minWidth: 150,
         flex: 1.1,
         sortable: true,
+        valueGetter: (_value, row) =>
+          row?.createdAt ? new Date(row.createdAt).getTime() : 0,
         renderCell: (params) => (
           <Typography variant="body2" sx={{ color: "#64748b" }}>
             {new Date(params.value).toLocaleString()}
@@ -1000,6 +1050,8 @@ const KeyManagement = () => {
             paginationMode="server"
             onPaginationModelChange={setPaginationModel}
             paginationModel={paginationModel}
+            sortModel={sortModel}
+            onSortModelChange={handleSortModelChange}
             column={columns}
             rows={keys}
             isLoading={loadingKeys}
