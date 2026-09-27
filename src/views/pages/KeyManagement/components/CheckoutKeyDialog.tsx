@@ -84,7 +84,8 @@ interface CheckoutKeyDialogProps extends DialogProps {
     fullAddress?: string;
     pickUpDateTime?: string;
     byWhen?: string;
-    keysNeeded?: string;
+    // keysNeeded?: string;
+    rfId?: string;
     status?: string;
     lostReason?: string;
     purpose?: string;
@@ -142,7 +143,8 @@ const CheckoutKeyDialog: React.FC<CheckoutKeyDialogProps> = ({
       fullAddress: "",
       pickUpDateTime: Date.now(),
       byWhen: null,
-      keysNeeded: "",
+      // keysNeeded: "",
+      rfId: "",
       status: "Requested",
       lostReason: "",
       purpose: "Inspection - ASPI",
@@ -214,7 +216,8 @@ const CheckoutKeyDialog: React.FC<CheckoutKeyDialogProps> = ({
         //     schema.required("By When is required for Vendor Requests"),
         //   otherwise: (schema) => schema.optional().nullable(),
         // }),
-        keysNeeded: Yup.string().required("Keys Needed is required"),
+        // keysNeeded: Yup.string().required("Keys Needed is required"),
+        rfId: Yup.string().required("RFID/ Key ID is required"),
         status: Yup.string().required("Status is required"),
         purpose: Yup.string().required("Purpose is required"),
         purposeDescription: Yup.string(),
@@ -894,7 +897,8 @@ const CheckoutKeyDialog: React.FC<CheckoutKeyDialogProps> = ({
         fullAddress: values.fullAddress?.trim() || "",
         pickUpDateTime: pickUpFormatted,
         byWhen: byWhenFormatted,
-        keysNeeded: values.keysNeeded?.trim() || "",
+        // keysNeeded: values.keysNeeded?.trim() || "",
+        rfId: values.rfId.trim(),
         status: values.status,
         lostReason: values.status === "Lost" ? values.lostReason?.trim() : "",
         purpose: finalPurpose,
@@ -1197,10 +1201,12 @@ const CheckoutKeyDialog: React.FC<CheckoutKeyDialogProps> = ({
           {/* Keys Needed */}
           <Grid size={{ xs: 12 }}>
             <MultilineTextField
-              name="keysNeeded"
-              label="Keys Needed"
+              // name="keysNeeded"
+              // label="Keys Needed"
+              name="rfId"
+              label="RFID/ Key ID"
               rows={3}
-              placeholder="e.g. 43D main key&#10;41D storage key"
+              // placeholder="e.g. 43D main key&#10;41D storage key"
               disabled={isSubmitting}
               required
             />
