@@ -1,4 +1,5 @@
 import AddIcon from "@mui/icons-material/Add";
+import AssignmentReturnIcon from "@mui/icons-material/AssignmentReturn";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import InfoIcon from "@mui/icons-material/Info";
@@ -36,6 +37,7 @@ import CheckoutKeyDialog from "./components/CheckoutKeyDialog";
 import DeleteKeyDialog from "./components/DeleteKeyDialog";
 import EditKeyDialog from "./components/EditKeyDialog";
 import KeyDetailsDialog from "./components/KeyDetailsDialog";
+import ReturnKeyDialog from "./components/ReturnKeyDialog";
 
 const KeyManagement = () => {
   const { showModal } = useModal();
@@ -71,14 +73,16 @@ const KeyManagement = () => {
     statusCounts: apiStatusCounts,
     properties,
     loadingKeys,
-    // refetchKeys,
+    refetchKeys,
     checkOutKey,
     updateKey,
+    returnKey,
     deleteKey,
     fetchRMVendors,
     fetchRMUsers,
     fetchRMProperties,
     fetchRMUnits,
+    fetchKeysByRfid,
   } = useKeyManagement(
     debouncedSearchTerm,
     statusFilter,
@@ -110,6 +114,18 @@ const KeyManagement = () => {
     fetchRMProperties,
     fetchRMUnits,
   ]);
+
+  // 2. Key Return Modal Caller
+  const handleReturnOpen = useCallback(() => {
+    const modal = showModal(ReturnKeyDialog, {
+      fetchKeysByRfid,
+      onReturn: returnKey,
+      refetchKeys,
+      onClose: () => {
+        modal.hide();
+      },
+    });
+  }, [showModal, fetchKeysByRfid, returnKey, refetchKeys]);
 
   // 2. Edit Key Modal Caller
   const handleEditOpen = useCallback(
@@ -901,6 +917,31 @@ const KeyManagement = () => {
                 }}
               >
                 Key Request
+              </Button>
+
+              <Button
+                variant="contained"
+                onClick={handleReturnOpen}
+                startIcon={<AssignmentReturnIcon sx={{ fontSize: 16 }} />}
+                sx={{
+                  bgcolor: "#ffffff",
+                  color: "#059669",
+                  textTransform: "none",
+                  fontWeight: 700,
+                  fontSize: "0.82rem",
+                  borderRadius: 2,
+                  px: 2.5,
+                  py: 0.75,
+                  whiteSpace: "nowrap",
+                  boxShadow: "0 2px 10px rgba(0, 0, 0, 0.08)",
+                  "&:hover": {
+                    bgcolor: "rgba(255, 255, 255, 0.95)",
+                    transform: "translateY(-1px)",
+                  },
+                  transition: "all 0.2s",
+                }}
+              >
+                Key Return
               </Button>
             </Grid>
           </Grid>

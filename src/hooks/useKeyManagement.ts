@@ -105,6 +105,7 @@ export const useKeyManagement = (
   } = useQuery({
     queryKey: ["keys", search, status, paginationModel, sortModel],
     queryFn: async () => {
+      // Condition: Build GET request with optional search, status filter, and pagination query params
       const response = await request.get("/keys", {
         params: {
           search: search || undefined,
@@ -153,6 +154,7 @@ export const useKeyManagement = (
   };
 
   const fetchRMUnits = async (propertyId: string | number) => {
+    // Condition: Return empty array immediately if no property ID provided
     if (!propertyId) return [];
     try {
       const response = await request.get("/rentManager/units", {
@@ -212,6 +214,7 @@ export const useKeyManagement = (
     idOrPayload: string | { id: string; payload: UpdateKeyPayload },
     maybePayload?: UpdateKeyPayload
   ) => {
+    // Condition: Support string ID + payload arguments or combined object argument
     if (typeof idOrPayload === "string") {
       return await updateKeyMutation({
         id: idOrPayload,
@@ -222,17 +225,24 @@ export const useKeyManagement = (
   };
 
   // 4. Return Key Request mutation
+  /**
+   * Mutation hook to send key return POST request.
+   * On success: Invalidates 'keys' query cache and displays success snackbar notification.
+   */
   const { mutateAsync: returnKey, isPending: isReturningKey } = useMutation({
     mutationKey: ["returnKey"],
     mutationFn: async (id: string) => {
+      // Condition: Send POST request to /keys/:id/return endpoint
       const response = await request.post(`/keys/${id}/return`);
       return response.data;
     },
     onSuccess: () => {
+      // Condition: Trigger UI cache refresh & success feedback
       showSnackbar("Key returned successfully!", "success");
       queryClient.invalidateQueries({ queryKey: ["keys"] });
     },
     onError: (err: any) => {
+      // Condition: Handle error response and display alert snackbar
       const message = err.response?.data?.message || "Failed to return key.";
       showSnackbar(message, "error");
     },
@@ -261,6 +271,23 @@ export const useKeyManagement = (
     return await deleteKeyMutation(id);
   };
 
+  /**
+   * Helper function to query active key checkout records by RFID tag code.
+   * Calls GET /keys/by-rfid/:rfId with URI encoded RFID parameter.
+   */
+  const fetchKeysByRfid = async (rfId: string) => {
+    try {
+      // Condition: Encode trimmed RFID parameter to prevent URL character breakages
+      const response = await request.get(
+        `/keys/by-rfid/${encodeURIComponent(rfId.trim())}`
+      );
+      // Condition: Return keys array if returned by API, otherwise default to empty array
+      return response.data?.keys || [];
+    } catch (error: any) {
+      throw error;
+    }
+  };
+
   return {
     keys: keysData?.keys || [],
     totalKeys: keysData?.total ?? 0,
@@ -280,6 +307,7 @@ export const useKeyManagement = (
     fetchRMUsers,
     fetchRMProperties,
     fetchRMUnits,
+    fetchKeysByRfid,
   };
 };
 
