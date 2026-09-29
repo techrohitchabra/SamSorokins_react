@@ -644,7 +644,7 @@ const KeyManagement = () => {
       {
         field: "createdAt",
         headerName: "Created At",
-        minWidth: 180,
+        minWidth: 280,
         flex: 1.3,
         sortable: true,
         valueGetter: (_value, row) =>
@@ -656,7 +656,8 @@ const KeyManagement = () => {
           const creatorName = getCreatorName(params.row?.createdBy);
           return (
             <Typography variant="body2" sx={{ color: "#64748b" }}>
-              {dateStr}{creatorName ? ` - ${creatorName}` : ""}
+              {dateStr}
+              {creatorName ? ` - ${creatorName}` : ""}
             </Typography>
           );
         },
