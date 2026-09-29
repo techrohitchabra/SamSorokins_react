@@ -1,7 +1,6 @@
 import AssignmentReturnIcon from "@mui/icons-material/AssignmentReturn";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import KeyIcon from "@mui/icons-material/Key";
-import SearchIcon from "@mui/icons-material/Search";
 import {
   Alert,
   Box,
@@ -18,7 +17,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import BasicModal from "../../../components/modal";
 import { getCreatorName } from "../../../../hooks/useKeyManagement";
 
@@ -39,50 +38,80 @@ const ReturnKeyDialog: React.FC<ReturnKeyDialogProps> = ({
 }) => {
   // State variables for RFID search input and search results management
   const [rfId, setRfId] = useState("");
-  // const [searched, setSearched] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [keysList, setKeysList] = useState<any[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [returningId, setReturningId] = useState<string | null>(null);
 
-  /**
-   * Triggers key lookup by RFID code input.
-   * Validates input, updates search loading state, and handles success/error responses.
-   */
-  const handleSearch = async () => {
-    const trimmed = rfId.trim();
-    // Condition: Do not execute search if RFID input is empty or whitespace
-    if (!trimmed) return;
+  // Keep stable ref for fetchKeysByRfid to prevent parent re-renders from cancelling debounce timer
+  const fetchKeysRef = React.useRef(fetchKeysByRfid);
+  useEffect(() => {
+    fetchKeysRef.current = fetchKeysByRfid;
+  }, [fetchKeysByRfid]);
+
+  // Reset dialog state when closed
+  useEffect(() => {
+    if (!open) {
+      setRfId("");
+      setKeysList([]);
+      setErrorMessage(null);
+      setIsSearching(false);
+    }
+  }, [open]);
+
+  // Core search execution function
+  const executeSearch = React.useCallback(async (targetRfid: string) => {
+    const trimmed = targetRfid.trim();
+    if (!trimmed) {
+      setKeysList([]);
+      setErrorMessage(null);
+      setIsSearching(false);
+      return;
+    }
 
     setIsSearching(true);
     setErrorMessage(null);
-    // setSearched(true);
-    setKeysList([]);
 
     try {
-      const results = await fetchKeysByRfid(trimmed);
-      // Condition: Populate key list if records found, otherwise set error message
+      const results = await fetchKeysRef.current(trimmed);
       if (results && results.length > 0) {
         setKeysList(results);
       } else {
+        setKeysList([]);
         setErrorMessage("No Key Record Found");
       }
     } catch (err: any) {
+      setKeysList([]);
       setErrorMessage("No Key Record Found");
     } finally {
       setIsSearching(false);
     }
-  };
+  }, []);
 
-  /**
-   * Handles keyboard shortcuts in RFID input field.
-   * Triggers search automatically when Enter key is pressed.
-   */
+  // Debounce search effect on rfId input change (300ms)
+  useEffect(() => {
+    if (!open) return;
+
+    const trimmed = rfId.trim();
+    if (!trimmed) {
+      setKeysList([]);
+      setErrorMessage(null);
+      setIsSearching(false);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      executeSearch(trimmed);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [rfId, open, executeSearch]);
+
+  // Instant execution when Enter key is pressed (e.g. from RFID / Barcode Scanner)
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    // Condition: Check for Enter key press
     if (e.key === "Enter") {
       e.preventDefault();
-      handleSearch();
+      executeSearch(rfId);
     }
   };
 
@@ -192,7 +221,7 @@ const ReturnKeyDialog: React.FC<ReturnKeyDialogProps> = ({
           <Paper
             elevation={0}
             sx={{
-              p: 1,
+              p: 1.5,
               bgcolor: "#f8fafc",
               border: "1px solid #e2e8f0",
               borderRadius: 2.5,
@@ -200,11 +229,11 @@ const ReturnKeyDialog: React.FC<ReturnKeyDialogProps> = ({
           >
             <Typography
               variant="subtitle2"
-              sx={{ fontWeight: 700, color: "#334155", mb: 0.2 }}
+              sx={{ fontWeight: 700, color: "#334155", mb: 0.5 }}
             >
               Enter or Scan RFID
             </Typography>
-            <Box display="flex" gap={1.5} alignItems="center">
+            <Box display="flex" alignItems="center">
               <TextField
                 fullWidth
                 size="small"
@@ -219,6 +248,11 @@ const ReturnKeyDialog: React.FC<ReturnKeyDialogProps> = ({
                       <KeyIcon sx={{ color: "#3b82f6", fontSize: 20 }} />
                     </InputAdornment>
                   ),
+                  endAdornment: isSearching ? (
+                    <InputAdornment position="end">
+                      <CircularProgress size={18} sx={{ color: "#2563eb" }} />
+                    </InputAdornment>
+                  ) : null,
                 }}
                 sx={{
                   bgcolor: "#ffffff",
@@ -227,32 +261,6 @@ const ReturnKeyDialog: React.FC<ReturnKeyDialogProps> = ({
                   },
                 }}
               />
-              {/* Search Button: Disabled during active search or when RFID input is empty */}
-              <Button
-                variant="contained"
-                onClick={handleSearch}
-                disabled={isSearching || !rfId.trim()}
-                startIcon={
-                  /* Condition: Display loader when search API call is in progress */
-                  isSearching ? (
-                    <CircularProgress size={16} color="inherit" />
-                  ) : (
-                    <SearchIcon sx={{ fontSize: 18 }} />
-                  )
-                }
-                sx={{
-                  bgcolor: "#2563eb",
-                  "&:hover": { bgcolor: "#1d4ed8" },
-                  textTransform: "none",
-                  fontWeight: 700,
-                  px: 3,
-                  py: 1,
-                  borderRadius: 2,
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {isSearching ? "Searching..." : "Search"}
-              </Button>
             </Box>
           </Paper>
 
@@ -577,7 +585,9 @@ const ReturnKeyDialog: React.FC<ReturnKeyDialogProps> = ({
                           >
                             {/* Condition: Format ISO date string with creator name or fallback dash */}
                             {keyItem.createdAt
-                              ? `${new Date(keyItem.createdAt).toLocaleString()}${
+                              ? `${new Date(
+                                  keyItem.createdAt
+                                ).toLocaleString()}${
                                   getCreatorName(keyItem.createdBy)
                                     ? ` - ${getCreatorName(keyItem.createdBy)}`
                                     : ""

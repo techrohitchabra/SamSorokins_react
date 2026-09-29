@@ -114,6 +114,11 @@ const Sidebar = ({ mobileOpen, onMobileToggle, desktopOpen }: Props) => {
         icon: <CopyAllIcon />,
         path: "/duplicate-submissions",
       },
+      {
+        text: "Key Management",
+        icon: <KeyIcon />,
+        path: "/key-management",
+      },
 
       ...(userId === "69bd177472681b58e9c964b9"
         ? [
@@ -122,11 +127,11 @@ const Sidebar = ({ mobileOpen, onMobileToggle, desktopOpen }: Props) => {
               icon: <ApartmentIcon />,
               path: "/rent-manager",
             },
-            {
-              text: "Key Management",
-              icon: <KeyIcon />,
-              path: "/key-management",
-            },
+            // {
+            //   text: "Key Management",
+            //   icon: <KeyIcon />,
+            //   path: "/key-management",
+            // },
             {
               text: "Logs",
               icon: <ListAltIcon />,

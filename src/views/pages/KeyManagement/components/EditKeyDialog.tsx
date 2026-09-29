@@ -26,7 +26,7 @@ interface EditKeyDialogProps extends DialogProps {
     id: string,
     payload: {
       vendor?: string;
-      // rfId?: string;
+      rfId?: string;
       status?: string;
       lostReason?: string;
       notes?: string;
@@ -48,7 +48,7 @@ const EditKeyDialog: React.FC<EditKeyDialogProps> = ({
   const initialValues = useMemo(
     () => ({
       vendor: keyData?.vendor || "",
-      // rfId: keyData?.rfId || keyData?.frId || "",
+      rfId: keyData?.rfId || keyData?.frId || "",
       status: keyData?.status || "Checked Out",
       lostReason: keyData?.lostReason || "",
       notes: keyData?.notes || "",
@@ -61,6 +61,11 @@ const EditKeyDialog: React.FC<EditKeyDialogProps> = ({
       Yup.object().shape({
         vendor: Yup.string().required("Vendor is required"),
         // rfId: Yup.string().required("RFID/ Key ID is required"),
+        rfId: Yup.string().when("status", {
+          is: (statusVal: string) => statusVal !== "Checked Out Permanently",
+          then: (schema) => schema.required("RFID / Key ID is required"),
+          otherwise: (schema) => schema.optional(),
+        }),
         status: Yup.string().required("Status is required"),
         notes: Yup.string().optional(),
         lostReason: Yup.string().when("status", {
@@ -87,7 +92,7 @@ const EditKeyDialog: React.FC<EditKeyDialogProps> = ({
     if (keyData) {
       reset({
         vendor: keyData.vendor || "",
-        // rfId: keyData.rfId || keyData.frId || "",
+        rfId: keyData.rfId || keyData.frId || "",
         status: keyData.status || "Checked Out",
         lostReason: keyData.lostReason || "",
         notes: keyData.notes || "",
@@ -101,7 +106,7 @@ const EditKeyDialog: React.FC<EditKeyDialogProps> = ({
     try {
       await onUpdate(keyData._id, {
         vendor: values.vendor.trim(),
-        // rfId: values.rfId.trim(),
+        rfId: values.rfId.trim(),
         status: values.status,
         lostReason:
           values.status === "Lost"
@@ -135,23 +140,12 @@ const EditKeyDialog: React.FC<EditKeyDialogProps> = ({
               disabled
             />
           </Grid>
-          {/* <Grid size={{ xs: 12 }}>
-            <MultilineTextField name="rfId" label="RFID/ Key ID" required />
-          </Grid> */}
+
           <Grid size={{ xs: 12 }}>
             <Select
               name="status"
               label="Key Status"
               options={STATUS_OPTIONS}
-              disabled={isSubmitting}
-            />
-          </Grid>
-          <Grid size={{ xs: 12 }}>
-            <MultilineTextField
-              name="notes"
-              label="Notes"
-              rows={3}
-              placeholder="Enter additional notes..."
               disabled={isSubmitting}
             />
           </Grid>
@@ -167,6 +161,27 @@ const EditKeyDialog: React.FC<EditKeyDialogProps> = ({
               />
             </Grid>
           )}
+
+          {/* RFID/ Key ID */}
+          {watchStatus !== "Checked Out Permanently" && (
+            <Grid size={{ xs: 12 }}>
+              <MultilineTextField
+                name="rfId"
+                label="RFID/ Key ID"
+                required={watchStatus !== "Checked Out Permanently"}
+              />
+            </Grid>
+          )}
+
+          <Grid size={{ xs: 12 }}>
+            <MultilineTextField
+              name="notes"
+              label="Notes"
+              rows={3}
+              placeholder="Enter additional notes..."
+              disabled={isSubmitting}
+            />
+          </Grid>
         </Grid>
       }
       actions={

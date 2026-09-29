@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { GridPaginationModel, GridSortModel } from "@mui/x-data-grid";
 import useAuth from "./useAuth";
@@ -295,18 +296,24 @@ export const useKeyManagement = (
    * Helper function to query active key checkout records by RFID tag code.
    * Calls GET /keys/by-rfid/:rfId with URI encoded RFID parameter.
    */
-  const fetchKeysByRfid = async (rfId: string) => {
-    try {
-      // Condition: Encode trimmed RFID parameter to prevent URL character breakages
-      const response = await request.get(
-        `/keys/by-rfid/${encodeURIComponent(rfId.trim())}`
-      );
-      // Condition: Return keys array if returned by API, otherwise default to empty array
-      return response.data?.keys || [];
-    } catch (error: any) {
-      throw error;
-    }
-  };
+  const fetchKeysByRfid = useCallback(
+    async (rfId: string) => {
+      try {
+        // Condition: Encode trimmed RFID parameter to prevent URL character breakages
+        const response = await request.get(
+          `/keys/by-rfid/${encodeURIComponent(rfId.trim())}`
+        );
+        // Condition: Return keys array if returned by API, otherwise default to empty array
+        return response.data?.keys || [];
+      } catch (error: any) {
+        if (error.response?.status === 404) {
+          return [];
+        }
+        throw error;
+      }
+    },
+    [request]
+  );
 
   return {
     keys: keysData?.keys || [],

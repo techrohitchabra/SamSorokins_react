@@ -586,13 +586,17 @@ const KeyManagement = () => {
       },
       {
         field: "keysNeeded",
-        headerName: "Keys Needed",
+        headerName: "Notes",
         minWidth: 150,
         flex: 1.2,
-        sortable: true,
+        // sortable: true,
         valueGetter: (_value, row) => row?.keysNeeded || "",
         renderCell: (params) => (
-          <Tooltip title={params.row.keysNeeded || ""} arrow placement="top">
+          <Tooltip
+            title={params.row.keysNeeded || params.row.notes || ""}
+            arrow
+            placement="top"
+          >
             <Typography
               variant="body2"
               sx={{
@@ -604,7 +608,7 @@ const KeyManagement = () => {
                 whiteSpace: "nowrap",
               }}
             >
-              {params.row.keysNeeded || "-"}
+              {params.row.keysNeeded || params.row.notes || "-"}
             </Typography>
           </Tooltip>
         ),

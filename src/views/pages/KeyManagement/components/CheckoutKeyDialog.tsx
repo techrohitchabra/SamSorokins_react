@@ -121,7 +121,7 @@ const CheckoutKeyDialog: React.FC<CheckoutKeyDialogProps> = ({
       fullAddress: "",
       pickUpDateTime: Date.now(),
       byWhen: null,
-      // keysNeeded: "",
+      keysNeeded: "",
       rfId: "",
       status: "Requested",
       lostReason: "",
@@ -194,8 +194,13 @@ const CheckoutKeyDialog: React.FC<CheckoutKeyDialogProps> = ({
         //     schema.required("By When is required for Vendor Requests"),
         //   otherwise: (schema) => schema.optional().nullable(),
         // }),
-        // keysNeeded: Yup.string().required("Keys Needed is required"),
-        rfId: Yup.string().required("RFID/ Key ID is required"),
+        rfId: Yup.string().when("status", {
+          is: (statusVal: string) => statusVal !== "Checked Out Permanently",
+          then: (schema) => schema.required("RFID / Key ID is required"),
+          otherwise: (schema) => schema.optional(),
+        }),
+        keysNeeded: Yup.string(),
+
         status: Yup.string().required("Status is required"),
         purpose: Yup.string().required("Purpose is required"),
         purposeDescription: Yup.string(),
@@ -399,7 +404,7 @@ const CheckoutKeyDialog: React.FC<CheckoutKeyDialogProps> = ({
         .finally(() => {
           setLoadingServiceIssue(false);
         });
-    }, 500);
+    }, 800);
 
     return () => clearTimeout(handler);
   }, [open, currentServiceIssue, isNonVendor]);
@@ -879,8 +884,8 @@ const CheckoutKeyDialog: React.FC<CheckoutKeyDialogProps> = ({
         fullAddress: values.fullAddress?.trim() || "",
         pickUpDateTime: pickUpFormatted,
         byWhen: byWhenFormatted,
-        // keysNeeded: values.keysNeeded?.trim() || "",
-        rfId: values.rfId.trim(),
+        keysNeeded: values.keysNeeded?.trim() || "",
+        rfId: values.rfId?.trim() || "",
         status: values.status,
         lostReason: values.status === "Lost" ? values.lostReason?.trim() : "",
         purpose: finalPurpose,
@@ -1181,17 +1186,28 @@ const CheckoutKeyDialog: React.FC<CheckoutKeyDialogProps> = ({
             />
           </Grid>
 
+          {/* RFID/ Key ID */}
+          {currentStatus !== "Checked Out Permanently" && (
+            <Grid size={{ xs: 12 }}>
+              <MultilineTextField
+                name="rfId"
+                label="RFID/ Key ID"
+                rows={3}
+                disabled={isSubmitting}
+                required={currentStatus !== "Checked Out Permanently"}
+              />
+            </Grid>
+          )}
+
           {/* Keys Needed */}
           <Grid size={{ xs: 12 }}>
             <MultilineTextField
-              // name="keysNeeded"
-              // label="Keys Needed"
-              name="rfId"
-              label="RFID/ Key ID"
+              name="keysNeeded"
+              label="Keys Needed"
               rows={3}
-              // placeholder="e.g. 43D main key&#10;41D storage key"
+              placeholder="List the Units and Types of Keys Needed"
               disabled={isSubmitting}
-              required
+              // required
             />
           </Grid>
 
