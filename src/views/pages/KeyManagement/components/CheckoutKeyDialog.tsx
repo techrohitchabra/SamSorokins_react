@@ -3,6 +3,7 @@ import { Button, type DialogProps, Box, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import dayjs from "dayjs";
 import React, { useEffect, useMemo, useState } from "react";
+import { useSelector } from "react-redux";
 import { useForm } from "react-hook-form";
 import * as Yup from "yup";
 
@@ -15,6 +16,7 @@ import Select from "../../../components/inputs/Select";
 import BasicModal from "../../../components/modal";
 // import PhoneNumberHelper from "../../../components/inputs/PhoneNumber";
 import useAuth from "../../../../hooks/useAuth";
+import type { CreateKeyPayload } from "../../../../hooks/useKeyManagement";
 
 const STATUS_OPTIONS = [
   { label: "Requested", value: "Requested" },
@@ -72,31 +74,7 @@ interface CheckoutKeyDialogProps extends DialogProps {
   fetchRMUsers?: () => Promise<any[]>;
   fetchRMProperties?: () => Promise<any[]>;
   fetchRMUnits?: (propertyId: string | number) => Promise<any[]>;
-  onCheckout: (payload: {
-    userType?: string;
-    vendor: string;
-    phoneNumber?: string;
-    email?: string;
-    repairsEmail?: string;
-    property: string;
-    unit?: string;
-    serviceIssue?: string;
-    fullAddress?: string;
-    pickUpDateTime?: string;
-    byWhen?: string;
-    // keysNeeded?: string;
-    rfId?: string;
-    status?: string;
-    lostReason?: string;
-    purpose?: string;
-    purposeDescription?: string;
-    areKeysForYou?: string;
-    whoWillPickUp?: string;
-    pickerPhoneNumber?: string;
-    pickerEmail?: string;
-    willBeReturned?: string;
-    whyNotReturned?: string;
-  }) => Promise<boolean>;
+  onCheckout: (payload: CreateKeyPayload) => Promise<boolean>;
   checkoutPending: boolean;
 }
 
@@ -845,6 +823,10 @@ const CheckoutKeyDialog: React.FC<CheckoutKeyDialogProps> = ({
     setValue,
   ]);
 
+  const { userId } = useAuth();
+  const { userData } = useSelector((state: any) => state.user);
+  const currentUserId = userId || userData?.userId || userData?._id || "";
+
   const onFormSubmit = async (values: any) => {
     setIsSubmitting(true);
     try {
@@ -911,6 +893,7 @@ const CheckoutKeyDialog: React.FC<CheckoutKeyDialogProps> = ({
         pickerEmail: isKeysForOther ? values.pickerEmail?.trim() : "",
         willBeReturned: values.willBeReturned || "Yes",
         whyNotReturned: isNotReturned ? values.whyNotReturned?.trim() : "",
+        createdBy: currentUserId,
       });
 
       if (success) {

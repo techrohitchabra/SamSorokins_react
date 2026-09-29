@@ -27,6 +27,7 @@ import { useModal } from "mui-modal-provider";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import useKeyManagement, {
+  getCreatorName,
   type KeyData,
 } from "../../../hooks/useKeyManagement";
 
@@ -643,16 +644,22 @@ const KeyManagement = () => {
       {
         field: "createdAt",
         headerName: "Created At",
-        minWidth: 150,
-        flex: 1.1,
+        minWidth: 180,
+        flex: 1.3,
         sortable: true,
         valueGetter: (_value, row) =>
           row?.createdAt ? new Date(row.createdAt).getTime() : 0,
-        renderCell: (params) => (
-          <Typography variant="body2" sx={{ color: "#64748b" }}>
-            {new Date(params.value).toLocaleString()}
-          </Typography>
-        ),
+        renderCell: (params) => {
+          const dateStr = params.row?.createdAt
+            ? new Date(params.row.createdAt).toLocaleString()
+            : "-";
+          const creatorName = getCreatorName(params.row?.createdBy);
+          return (
+            <Typography variant="body2" sx={{ color: "#64748b" }}>
+              {dateStr}{creatorName ? ` - ${creatorName}` : ""}
+            </Typography>
+          );
+        },
         renderHeader: (params: any) => params?.colDef?.headerName,
       },
     ],

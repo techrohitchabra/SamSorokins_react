@@ -20,6 +20,7 @@ import {
 } from "@mui/material";
 import React, { useState } from "react";
 import BasicModal from "../../../components/modal";
+import { getCreatorName } from "../../../../hooks/useKeyManagement";
 
 interface ReturnKeyDialogProps extends DialogProps {
   onClose: () => void;
@@ -574,9 +575,13 @@ const ReturnKeyDialog: React.FC<ReturnKeyDialogProps> = ({
                             variant="subtitle2"
                             sx={{ fontWeight: 600, color: "#64748b" }}
                           >
-                            {/* Condition: Format ISO date string or show fallback dash */}
+                            {/* Condition: Format ISO date string with creator name or fallback dash */}
                             {keyItem.createdAt
-                              ? new Date(keyItem.createdAt).toLocaleString()
+                              ? `${new Date(keyItem.createdAt).toLocaleString()}${
+                                  getCreatorName(keyItem.createdBy)
+                                    ? ` - ${getCreatorName(keyItem.createdBy)}`
+                                    : ""
+                                }`
                               : "-"}
                           </Typography>
                         </Grid>

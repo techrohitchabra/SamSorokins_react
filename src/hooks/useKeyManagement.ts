@@ -24,8 +24,27 @@ export interface KeyData {
   accessLog: string[];
   rawData: any;
   createdAt: string;
+  createdBy?: any;
   details?: MergedDetails;
 }
+
+/**
+ * Helper to safely extract person's display name from createdBy field (supports populated object or string name/ID).
+ */
+export const getCreatorName = (createdBy: any): string => {
+  if (!createdBy) return "";
+  if (typeof createdBy === "string") return createdBy;
+  if (typeof createdBy === "object") {
+    return (
+      createdBy.fullName ||
+      [createdBy.firstName, createdBy.lastName].filter(Boolean).join(" ") ||
+      createdBy.email ||
+      createdBy.recordId ||
+      ""
+    );
+  }
+  return "";
+};
 
 export interface MergedDetails {
   property: {
@@ -72,6 +91,7 @@ export type CreateKeyPayload = {
   pickerEmail?: string;
   willBeReturned?: string;
   whyNotReturned?: string;
+  createdBy?: string;
 };
 
 export type UpdateKeyPayload = {

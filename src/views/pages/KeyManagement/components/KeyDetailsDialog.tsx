@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import BasicModal from "../../../components/modal";
+import { getCreatorName } from "../../../../hooks/useKeyManagement";
 
 interface KeyDetailsDialogProps extends DialogProps {
   onClose: () => void;
@@ -47,7 +48,12 @@ const KeyDetailsDialog: React.FC<KeyDetailsDialogProps> = ({
             }}
           >
             Status: {keyData.status} | Created:{" "}
-            {keyData.createdAt && new Date(keyData.createdAt).toLocaleString()}
+            {keyData.createdAt &&
+              `${new Date(keyData.createdAt).toLocaleString()}${
+                getCreatorName(keyData.createdBy)
+                  ? ` - ${getCreatorName(keyData.createdBy)}`
+                  : ""
+              }`}
           </Typography>
         </Box>
       }
