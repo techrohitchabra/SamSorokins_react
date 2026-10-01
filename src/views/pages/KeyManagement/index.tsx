@@ -589,7 +589,7 @@ const KeyManagement = () => {
         headerName: "Keys Needed",
         minWidth: 150,
         flex: 1.2,
-        // sortable: true,
+        sortable: false,
         valueGetter: (_value, row) => row?.keysNeeded || "",
         renderCell: (params) => (
           <Tooltip title={params.row.keysNeeded || ""} arrow placement="top">
@@ -615,7 +615,7 @@ const KeyManagement = () => {
         headerName: "Notes",
         minWidth: 150,
         flex: 1.2,
-        // sortable: true,
+        sortable: false,
         valueGetter: (_value, row) => row?.keysNeeded || "",
         renderCell: (params) => (
           <Tooltip title={params.row.notes || ""} arrow placement="top">
@@ -641,7 +641,7 @@ const KeyManagement = () => {
         headerName: "Pick Up Date",
         minWidth: 160,
         flex: 1.2,
-        sortable: true,
+        sortable: false,
         valueGetter: (_value, row) => row?.pickUpDateTime || "",
         renderCell: (params) => (
           <Typography
@@ -658,7 +658,7 @@ const KeyManagement = () => {
         headerName: "By When",
         minWidth: 110,
         flex: 0.9,
-        sortable: true,
+        sortable: false,
         valueGetter: (_value, row) => row?.byWhen || "",
         renderCell: (params) => (
           <Typography variant="body2" sx={{ color: "#475569" }}>
@@ -672,7 +672,7 @@ const KeyManagement = () => {
         headerName: "Created At",
         minWidth: 280,
         flex: 1.3,
-        sortable: true,
+        sortable: false,
         valueGetter: (_value, row) =>
           row?.createdAt ? new Date(row.createdAt).getTime() : 0,
         renderCell: (params) => {
