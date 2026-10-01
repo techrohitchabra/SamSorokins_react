@@ -586,17 +586,13 @@ const KeyManagement = () => {
       },
       {
         field: "keysNeeded",
-        headerName: "Notes",
+        headerName: "Keys Needed",
         minWidth: 150,
         flex: 1.2,
         // sortable: true,
         valueGetter: (_value, row) => row?.keysNeeded || "",
         renderCell: (params) => (
-          <Tooltip
-            title={params.row.keysNeeded || params.row.notes || ""}
-            arrow
-            placement="top"
-          >
+          <Tooltip title={params.row.keysNeeded || ""} arrow placement="top">
             <Typography
               variant="body2"
               sx={{
@@ -608,7 +604,33 @@ const KeyManagement = () => {
                 whiteSpace: "nowrap",
               }}
             >
-              {params.row.keysNeeded || params.row.notes || "-"}
+              {params.row.keysNeeded || "-"}
+            </Typography>
+          </Tooltip>
+        ),
+        renderHeader: (params: any) => params?.colDef?.headerName,
+      },
+      {
+        field: "notes",
+        headerName: "Notes",
+        minWidth: 150,
+        flex: 1.2,
+        // sortable: true,
+        valueGetter: (_value, row) => row?.keysNeeded || "",
+        renderCell: (params) => (
+          <Tooltip title={params.row.notes || ""} arrow placement="top">
+            <Typography
+              variant="body2"
+              sx={{
+                color: "#334155",
+                fontWeight: 500,
+                maxWidth: 140,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {params.row.notes || "-"}
             </Typography>
           </Tooltip>
         ),
