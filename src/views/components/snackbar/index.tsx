@@ -44,5 +44,11 @@ export const SnackbarHelper: React.FC<SnackbarHelperProps> = ({ children }) => {
 };
 
 export const useSnackbarHelper = () => {
-  return useContext(SnackbarContext);
+  const context = useContext(SnackbarContext);
+  return (
+    context ||
+    ((message: string) => {
+      console.log("[Snackbar]:", message);
+    })
+  );
 };

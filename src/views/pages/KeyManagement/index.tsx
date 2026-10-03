@@ -679,7 +679,8 @@ const KeyManagement = () => {
           const dateStr = params.row?.createdAt
             ? new Date(params.row.createdAt).toLocaleString()
             : "-";
-          const creatorName = getCreatorName(params.row?.createdBy);
+          const creatorName =
+            getCreatorName(params.row?.createdBy) || params.row.userType;
           return (
             <Typography variant="body2" sx={{ color: "#64748b" }}>
               {dateStr}

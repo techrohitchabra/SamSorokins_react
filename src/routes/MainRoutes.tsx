@@ -11,6 +11,8 @@ import RentManager from "../views/pages/RentManager";
 import KeyManagement from "../views/pages/KeyManagement";
 import DuplicateSubmissions from "../views/pages/DuplicateSubmissions";
 
+import PublicCheckout from "../views/pages/PublicCheckout";
+
 /**
  * Routes component that conditionally renders application routes based on user authentication status.
  * @component MainRoutes
@@ -29,6 +31,22 @@ const MainRoutes = () => ({
       path: "/dashboard",
       element: <Dashboard />,
     },
+    {
+      path: "/checkout/vendor",
+      element: <PublicCheckout defaultUserType="Vendor" />,
+    },
+    {
+      path: "/checkout/non-vendor",
+      element: <PublicCheckout defaultUserType="Non-Vendor" />,
+    },
+    // {
+    //   path: "/checkout-vendor",
+    //   element: <PublicCheckout defaultUserType="Vendor" />,
+    // },
+    // {
+    //   path: "/checkout-non-vendor",
+    //   element: <PublicCheckout defaultUserType="Non-Vendor" />,
+    // },
     {
       path: "/submissions",
       element: <Files />,

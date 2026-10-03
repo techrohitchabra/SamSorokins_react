@@ -10,6 +10,7 @@ import AddDetails from "../views/pages/AddDetails";
 import Thankyou from "../views/pages/Thankyou";
 import NothingToUpload from "../views/pages/NothingToUpload";
 import RedirectToAddDetails from "../views/pages/RedirectToAddDetails";
+import PublicCheckout from "../views/pages/PublicCheckout";
 /**
  * AuthRoutes component that defines the routing structure for authentication-related pages.
  * @component AuthRoutes
@@ -28,6 +29,22 @@ const AuthRoutes = () => ({
       path: "/login",
       element: <Login />,
     },
+    {
+      path: "/checkout/vendor",
+      element: <PublicCheckout defaultUserType="Vendor" />,
+    },
+    {
+      path: "/checkout/non-vendor",
+      element: <PublicCheckout defaultUserType="Non-Vendor" />,
+    },
+    // {
+    //   path: "/checkout-vendor",
+    //   element: <PublicCheckout defaultUserType="Vendor" />,
+    // },
+    // {
+    //   path: "/checkout-non-vendor",
+    //   element: <PublicCheckout defaultUserType="Non-Vendor" />,
+    // },
     {
       path: "/register",
       element: <Register />,
