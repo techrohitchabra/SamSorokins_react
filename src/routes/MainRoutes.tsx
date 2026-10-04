@@ -32,11 +32,11 @@ const MainRoutes = () => ({
       element: <Dashboard />,
     },
     {
-      path: "/checkout/vendor",
+      path: "/keys/request/vendor",
       element: <PublicCheckout defaultUserType="Vendor" />,
     },
     {
-      path: "/checkout/non-vendor",
+      path: "/keys/request/non-vendor",
       element: <PublicCheckout defaultUserType="Non-Vendor" />,
     },
     // {

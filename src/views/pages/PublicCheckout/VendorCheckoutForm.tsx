@@ -9,19 +9,19 @@ import BasicAutocomplete from "../../components/inputs/BasicAutocomplete";
 import BasicDatePicker from "../../components/inputs/BasicDatePicker";
 import MuiTextField from "../../components/inputs/MuiTextField";
 import MultilineTextField from "../../components/inputs/MultilineTextField";
-import Select from "../../components/inputs/Select";
+// import Select from "../../components/inputs/Select";
 import { useSnackbarHelper } from "../../components/snackbar";
 
 const API_URL = import.meta.env.VITE_API_URL || "";
 
-const STATUS_OPTIONS = [
-  { label: "Requested", value: "Requested" },
-  { label: "Checked Out", value: "Checked Out" },
-  { label: "Checked Out Permanently", value: "Checked Out Permanently" },
-  { label: "To Be Returned", value: "To Be Returned" },
-  { label: "Checked In", value: "Checked In" },
-  { label: "Lost", value: "Lost" },
-];
+// const STATUS_OPTIONS = [
+//   { label: "Requested", value: "Requested" },
+//   { label: "Checked Out", value: "Checked Out" },
+//   { label: "Checked Out Permanently", value: "Checked Out Permanently" },
+//   { label: "To Be Returned", value: "To Be Returned" },
+//   { label: "Checked In", value: "Checked In" },
+//   { label: "Lost", value: "Lost" },
+// ];
 
 export interface OptionType {
   label: string;
@@ -483,7 +483,7 @@ const VendorCheckoutForm: React.FC<VendorCheckoutFormProps> = ({
       );
 
       if (res.data?.success ?? true) {
-        showSnackbar("Vendor key request submitted successfully!", "success");
+        // showSnackbar("Vendor key request submitted successfully!", "success");
         reset(initialValues);
         if (onSuccess) onSuccess();
       }
@@ -510,229 +510,268 @@ const VendorCheckoutForm: React.FC<VendorCheckoutFormProps> = ({
         component="form"
         onSubmit={formContext.handleSubmit(onFormSubmit)}
         noValidate
-        sx={{ width: "100%" }}
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          maxHeight: { xs: "calc(100vh - 160px)", sm: "calc(100vh - 150px)" },
+          minHeight: { xs: 450, sm: 520 },
+          width: "100%",
+        }}
       >
-        {isLoading && <LinearProgress sx={{ mb: 2.5, borderRadius: 1 }} />}
+        {isLoading && <LinearProgress sx={{ mb: 1, borderRadius: 1 }} />}
 
-        {/* EVERY field uses size={{ xs: 12 }} so in one row ONLY ONE field is displayed */}
-        <Grid container spacing={2.5}>
-          {/* Service Issue # */}
-          <Grid size={{ xs: 12 }}>
-            <MuiTextField
-              name="serviceIssue"
-              label="Service Issue #"
-              placeholder="e.g. 12121212121"
-              disabled={isSubmitting}
-              required
-            />
-          </Grid>
-
-          {/* Vendor Dropdown */}
-          <Grid size={{ xs: 12 }}>
-            <BasicAutocomplete
-              name="vendor"
-              label="Vendor"
-              required
-              options={vendorOptions}
-              getOptionValue={(option: any) =>
-                typeof option === "string" ? option : option?.value || ""
-              }
-              placeholder={
-                loadingVendors ? "Loading RM Vendors..." : "Select vendor..."
-              }
-              disabled={isSubmitting}
-            />
-          </Grid>
-
-          {/* Specify Vendor Name if "Other" is selected */}
-          {isOtherVendor && (
+        {/* Scrollable Fields Container */}
+        <Box
+          sx={{
+            flex: 1,
+            overflowY: "auto",
+            pr: { xs: 0.5, sm: 1.5 },
+            py: 0.5,
+            "&::-webkit-scrollbar": {
+              width: "6px",
+            },
+            "&::-webkit-scrollbar-track": {
+              background: "#f1f5f9",
+              borderRadius: "8px",
+            },
+            "&::-webkit-scrollbar-thumb": {
+              background: "#cbd5e1",
+              borderRadius: "8px",
+            },
+            "&::-webkit-scrollbar-thumb:hover": {
+              background: "#94a3b8",
+            },
+          }}
+        >
+          {/* EVERY field uses size={{ xs: 12 }} so in one row ONLY ONE field is displayed */}
+          <Grid container spacing={2}>
+            {/* Service Issue # */}
             <Grid size={{ xs: 12 }}>
               <MuiTextField
-                name="vendorDescription"
-                label="Specify Vendor Name"
+                name="serviceIssue"
+                label="Service Issue #"
+                placeholder="e.g. 12121212121"
+                disabled={isSubmitting}
                 required
-                placeholder="e.g. Custom Vendor Company"
+              />
+            </Grid>
+
+            {/* Vendor Dropdown */}
+            <Grid size={{ xs: 12 }}>
+              <BasicAutocomplete
+                name="vendor"
+                label="Vendor"
+                required
+                options={vendorOptions}
+                getOptionValue={(option: any) =>
+                  typeof option === "string" ? option : option?.value || ""
+                }
+                placeholder={
+                  loadingVendors ? "Loading RM Vendors..." : "Select vendor..."
+                }
                 disabled={isSubmitting}
               />
             </Grid>
-          )}
 
-          {/* Property */}
-          <Grid size={{ xs: 12 }}>
-            <BasicAutocomplete
-              name="property"
-              label="Property"
-              required
-              options={propertyOptions}
-              getOptionValue={(option: any) =>
-                typeof option === "string" ? option : option?.value || ""
-              }
-              placeholder={
-                loadingProperties
-                  ? "Loading RM Properties..."
-                  : "Select property..."
-              }
-              disabled={isSubmitting}
-            />
-          </Grid>
+            {/* Specify Vendor Name if "Other" is selected */}
+            {isOtherVendor && (
+              <Grid size={{ xs: 12 }}>
+                <MuiTextField
+                  name="vendorDescription"
+                  label="Specify Vendor Name"
+                  required
+                  placeholder="e.g. Custom Vendor Company"
+                  disabled={isSubmitting}
+                />
+              </Grid>
+            )}
 
-          {/* Unit */}
-          <Grid size={{ xs: 12 }}>
-            <BasicAutocomplete
-              name="unit"
-              label="Unit"
-              loading={loadingUnits}
-              loadingText="Loading Units..."
-              options={unitOptions}
-              getOptionValue={(option: any) =>
-                typeof option === "string" ? option : option?.value || ""
-              }
-              placeholder={
-                loadingUnits
-                  ? "Loading Units for property..."
-                  : unitOptions.length > 0
-                  ? "Select unit..."
-                  : "Select property to view units..."
-              }
-              disabled={isSubmitting}
-            />
-          </Grid>
+            {/* Property */}
+            <Grid size={{ xs: 12 }}>
+              <BasicAutocomplete
+                name="property"
+                label="Property"
+                required
+                options={propertyOptions}
+                getOptionValue={(option: any) =>
+                  typeof option === "string" ? option : option?.value || ""
+                }
+                placeholder={
+                  loadingProperties
+                    ? "Loading RM Properties..."
+                    : "Select property..."
+                }
+                disabled={isSubmitting}
+              />
+            </Grid>
 
-          {/* Phone Number */}
-          <Grid size={{ xs: 12 }}>
-            <MuiTextField
-              name="phoneNumber"
-              label="Phone Number"
-              placeholder="e.g. (211) 111-11100"
-              disabled={isSubmitting}
-              required
-              inputProps={{ maxLength: 25 }}
-            />
-          </Grid>
+            {/* Unit */}
+            <Grid size={{ xs: 12 }}>
+              <BasicAutocomplete
+                name="unit"
+                label="Unit"
+                loading={loadingUnits}
+                loadingText="Loading Units..."
+                options={unitOptions}
+                getOptionValue={(option: any) =>
+                  typeof option === "string" ? option : option?.value || ""
+                }
+                placeholder={
+                  loadingUnits
+                    ? "Loading Units for property..."
+                    : unitOptions.length > 0
+                    ? "Select unit..."
+                    : "Select property to view units..."
+                }
+                disabled={isSubmitting}
+              />
+            </Grid>
 
-          {/* Email */}
-          <Grid size={{ xs: 12 }}>
-            <MuiTextField
-              name="email"
-              label="Email"
-              placeholder="e.g. test@example.com"
-              disabled={isSubmitting}
-              required
-            />
-          </Grid>
+            {/* Phone Number */}
+            <Grid size={{ xs: 12 }}>
+              <MuiTextField
+                name="phoneNumber"
+                label="Phone Number"
+                placeholder="e.g. (211) 111-11100"
+                disabled={isSubmitting}
+                required
+                inputProps={{ maxLength: 25 }}
+              />
+            </Grid>
 
-          {/* Full Address */}
-          <Grid size={{ xs: 12 }}>
-            <MuiTextField
-              name="fullAddress"
-              label="Full Address"
-              placeholder="e.g. 123 Main St, Suite A"
-              disabled={isSubmitting}
-              required
-            />
-          </Grid>
+            {/* Email */}
+            <Grid size={{ xs: 12 }}>
+              <MuiTextField
+                name="email"
+                label="Email"
+                placeholder="e.g. test@example.com"
+                disabled={isSubmitting}
+                required
+              />
+            </Grid>
 
-          {/* Pick Up Date */}
-          <Grid size={{ xs: 12 }}>
-            <BasicDatePicker
-              name="pickUpDateTime"
-              label="Pick Up Date"
-              disabled={isSubmitting}
-              required
-            />
-          </Grid>
+            {/* Full Address */}
+            <Grid size={{ xs: 12 }}>
+              <MuiTextField
+                name="fullAddress"
+                label="Full Address"
+                placeholder="e.g. 123 Main St, Suite A"
+                disabled={isSubmitting}
+                required
+              />
+            </Grid>
 
-          {/* By When Date */}
-          <Grid size={{ xs: 12 }}>
-            <BasicDatePicker
-              name="byWhen"
-              label="By When (Date)"
-              disabled={isSubmitting}
-            />
-          </Grid>
+            {/* Pick Up Date */}
+            <Grid size={{ xs: 12 }}>
+              <BasicDatePicker
+                name="pickUpDateTime"
+                label="Pick Up Date"
+                disabled={isSubmitting}
+                required
+              />
+            </Grid>
 
-          {/* Key Status */}
-          <Grid size={{ xs: 12 }}>
-            <Select
-              name="status"
-              label="Key Status"
-              options={STATUS_OPTIONS}
-              disabled={isSubmitting}
-              required
-            />
-          </Grid>
+            {/* By When Date */}
+            <Grid size={{ xs: 12 }}>
+              <BasicDatePicker
+                name="byWhen"
+                label="By When (Date)"
+                disabled={isSubmitting}
+              />
+            </Grid>
 
-          {/* Repairs Email */}
-          <Grid size={{ xs: 12 }}>
-            <MuiTextField
-              name="repairsEmail"
-              label="Repairs Email"
-              placeholder="e.g. repairs@premiumpd.com"
-              disabled={isSubmitting}
-              required
-            />
-          </Grid>
+            {/* Key Status */}
+            {/* <Grid size={{ xs: 12 }}>
+              <Select
+                name="status"
+                label="Key Status"
+                options={STATUS_OPTIONS}
+                disabled={isSubmitting}
+                required
+              />
+            </Grid> */}
 
-          {/* RFID/ Key ID */}
-          {currentStatus !== "Checked Out Permanently" && (
+            {/* Repairs Email */}
+            {/* <Grid size={{ xs: 12 }}>
+              <MuiTextField
+                name="repairsEmail"
+                label="Repairs Email"
+                placeholder="e.g. repairs@premiumpd.com"
+                disabled={isSubmitting}
+                required
+              />
+            </Grid> */}
+
+            {/* RFID/ Key ID */}
+            {currentStatus !== "Checked Out Permanently" && (
+              <Grid size={{ xs: 12 }}>
+                <MultilineTextField
+                  name="rfId"
+                  label="RFID/ Key ID"
+                  rows={3}
+                  disabled={isSubmitting}
+                  required={currentStatus !== "Checked Out Permanently"}
+                />
+              </Grid>
+            )}
+
+            {/* Keys Needed */}
             <Grid size={{ xs: 12 }}>
               <MultilineTextField
-                name="rfId"
-                label="RFID/ Key ID"
+                name="keysNeeded"
+                label="Keys Needed"
                 rows={3}
+                placeholder="List the Units and Types of Keys Needed"
                 disabled={isSubmitting}
-                required={currentStatus !== "Checked Out Permanently"}
               />
             </Grid>
-          )}
 
-          {/* Keys Needed */}
-          <Grid size={{ xs: 12 }}>
-            <MultilineTextField
-              name="keysNeeded"
-              label="Keys Needed"
-              rows={3}
-              placeholder="List the Units and Types of Keys Needed"
-              disabled={isSubmitting}
-            />
+            {/* Lost Reason if status is Lost */}
+            {currentStatus === "Lost" && (
+              <Grid size={{ xs: 12 }}>
+                <MultilineTextField
+                  name="lostReason"
+                  label="Reason & Decision (What happened & action taken)"
+                  required
+                  rows={2}
+                  placeholder="Explain what happened to the key..."
+                  disabled={isSubmitting}
+                />
+              </Grid>
+            )}
           </Grid>
+        </Box>
 
-          {/* Lost Reason if status is Lost */}
-          {currentStatus === "Lost" && (
-            <Grid size={{ xs: 12 }}>
-              <MultilineTextField
-                name="lostReason"
-                label="Reason & Decision (What happened & action taken)"
-                required
-                rows={2}
-                placeholder="Explain what happened to the key..."
-                disabled={isSubmitting}
-              />
-            </Grid>
-          )}
-        </Grid>
-
-        {/* Submit Button */}
-        <Box sx={{ mt: 3.5, display: "flex", justifyContent: "flex-end" }}>
+        {/* Sticky Submit Button */}
+        <Box
+          sx={{
+            position: "sticky",
+            bottom: 0,
+            zIndex: 10,
+            bgcolor: "#ffffff",
+            pt: 1,
+            // pb: 0.5,
+            mt: 1,
+            borderTop: "1.5px solid #e2e8f0",
+            boxShadow: "0 -4px 12px rgba(0,0,0,0.05)",
+          }}
+        >
           <Button
             type="submit"
             variant="contained"
-            size="large"
             disabled={isSubmitting}
             sx={{
               width: "100%",
-              py: 1.5,
+              py: 0.9,
               fontWeight: 700,
               textTransform: "none",
               bgcolor: "#16a34a",
               "&:hover": { bgcolor: "#15803d" },
               borderRadius: 2,
-              fontSize: "1.05rem",
+              fontSize: "0.95rem",
             }}
           >
-            {isSubmitting
-              ? "Submitting Vendor Request..."
-              : "Submit Vendor Key Request"}
+            {isSubmitting ? "Submitting Key Request..." : "Submit Key Request"}
           </Button>
         </Box>
       </Box>
